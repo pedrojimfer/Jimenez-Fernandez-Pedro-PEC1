@@ -1,0 +1,30 @@
+---
+title: "Jimenez-Ferandez-Pedro-PEC1"
+author: "Pedro Jiménez Fernández"
+date: "2025-03-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Importación de los datos
+
+En primer lugar se descargan los datos.
+
+```{r}
+# descarga de los datos
+curl::curl_download(url = "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/refs/heads/main/Datasets/2024-Cachexia/human_cachexia.csv", destfile = "human_cachexia.csv")
+```
+
+Una vez descargados los datos en el repositorio, se importan para su posterior análisis.
+
+```{r}
+# importación de los datos
+cachexia_data <- read.csv(file = "human_cachexia.csv")
+```
+
+```{r}
+
+```
