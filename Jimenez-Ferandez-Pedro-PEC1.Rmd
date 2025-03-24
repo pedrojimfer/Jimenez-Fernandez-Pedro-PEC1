@@ -15,6 +15,9 @@ En primer lugar se descargan los datos.
 
 ```{r}
 # descarga de los datos
+if (!require("curl", quietly = TRUE)) {
+  install.packages("curl")
+}
 curl::curl_download(url = "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/refs/heads/main/Datasets/2024-Cachexia/human_cachexia.csv", destfile = "human_cachexia.csv")
 ```
 
@@ -23,11 +26,63 @@ Una vez descargados los datos en el repositorio, se importan para su posterior a
 ```{r}
 # importación de los datos
 cachexia_data <- read.csv(file = "human_cachexia.csv")
-# a continuación se convierte la variable cachexia_data en un objeto de tipo
-# matriz para que los datos sean de tipo numérico
-
+# a continuación se separan los datos de los metadatos
+patient_id <- cachexia_data[1:nrow(cachexia_data), 1]
+muscle_loss <- cachexia_data[1:nrow(cachexia_data), 2]
+data <- cachexia_data[1:nrow(cachexia_data), 3:ncol(cachexia_data)]
+metabolites <- colnames(data)
+# para que los datos sean de tipo numérico se guardan en la variable
+# data como un objeto de tipo matriz
+data <- as.matrix(data)
 ```
 
-```{r}
+# Creación del objeto SummarizedExperiment
 
+```{r}
+# Una vez se tienen separados por una parte los datos y por otra los
+# metadatos en distintas variables, se crea el objeto
+# SummarizedExperiment. Para ello, primero se instala la librería en
+# caso de no estar instalada y se carga.
+# Se instala BiocManager en caso de no estar instalado
+if (!require("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+  BiocManager::install(version = "3.20")
+}
+# se instala SummarizedExperiment en caso de no estar instalado
+if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+  BiocManager::install("SummarizedExperiment")
+}
+# se carga la librería SummarizdExperiment
+library(SummarizedExperiment)
+# una vez cargada la librería, se procede a la creación del objeto de
+# tipo SummarizedExperiment.
+# En primer lugar, se transpone la matriz de datos para que los metabolitos
+# aparezcan como filas, esto se hace para seguir la estructura convencional
+# de BioConductor
+data <- t(data)
+row.names(data) = metabolites
+colnames(data) = patient_id
+# se crean los metadatos de las columnas
+col_data <- DataFrame(patient_id = patient_id, group = muscle_loss)
+rownames(col_data) <- patient_id
+# se crean los metadatos de las filas
+row_data <- DataFrame(metabolite_name = metabolites)
+rownames(row_data) <- metabolites
+# se crean una serie de metadatos generales con breve información de
+# los datos
+meta <- list(
+  title = "Perfil metabolómico en pacientes con cachexia",
+  grupos = "Control: sin cachexia, Cachexia: con cachexia",
+  fuente = "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/refs/heads/main/Datasets/2024-Cachexia/human_cachexia.csv",
+  fecha = Sys.Date()
+)
+# y finalmente se crea el objeto SummarizedExperiment
+cachexia_se <- SummarizedExperiment(
+  assays = list(metabolites = data),
+  rowData = row_data,
+  colData = col_data,
+  metadata = meta
+)
+# se visualiza el objeto SummarizedExperiment
+cachexia_se
 ```
