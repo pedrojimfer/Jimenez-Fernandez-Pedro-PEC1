@@ -9,7 +9,21 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Importación de los datos
+# Abstract
+
+Resumen de lo que es la cachexia, y breve descripción de lo que se hace en este estudio
+
+# Objetivos
+
+Creación del objeto de tipo summarizedExperiment a partir del conjunto de datos proporcionado, objetivos del análisis estadístico.
+
+# Métodos
+
+RStudio, RMarkdown y librerías empleadas, construcción de objeto de tipo summarizedExperiment, métodos estadísticos empleados
+
+# Resultados
+
+## Importación de los datos
 
 En primer lugar se descargan los datos.
 
@@ -18,6 +32,7 @@ En primer lugar se descargan los datos.
 if (!require("curl", quietly = TRUE)) {
   install.packages("curl")
 }
+library(curl)
 curl::curl_download(url = "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/refs/heads/main/Datasets/2024-Cachexia/human_cachexia.csv", destfile = "human_cachexia.csv")
 ```
 
@@ -36,7 +51,7 @@ metabolites <- colnames(data)
 data <- as.matrix(data)
 ```
 
-# Creación del objeto SummarizedExperiment
+## Creación del objeto SummarizedExperiment
 
 ```{r}
 # Una vez se tienen separados por una parte los datos y por otra los
@@ -86,3 +101,36 @@ cachexia_se <- SummarizedExperiment(
 # se visualiza el objeto SummarizedExperiment
 cachexia_se
 ```
+
+Tal y como se puede observar, la variable "cachexia_se" contiene 63 variables (metabolitos) y 77 observaciones (pacientes/individuos sanos) distribuídas en filas y columnas respectivamente.
+
+## Análisis exploratorio de los datos y PCA (principal component analysis)
+
+A continuación se hace un análisis exploratorio de los datos contenidos en el objeto "cachexia_se".
+
+```{r}
+# resumen de los diferentes grupos
+table(colData(cachexia_se)$group)
+```
+
+Se puede observar que en total hay 47 individuos con cachexia y 30 individuos pertenecientes al grupo control.
+
+```{r}
+# resumen estadístico básico de los metabolitos:
+## primero se construye un dataframe
+met_data <- assay(cachexia_se)
+stats <- data.frame(
+  metabolite = rownames(met_data),
+  mean = rowMeans(met_data),
+  sd = rowSds(met_data),
+  median = rowMedians(met_data),
+  min = rowMins(met_data),
+  max = rowMaxs(met_data)
+)
+## se muestran las estadísticas descriptivas básicas ds los 10 metabolitos con
+## niveles medios más altos
+head(stats[order(-stats$mean), ], n = 10)
+
+```
+
+Los 3 metabolitos con niveles medios más altos son son la creatinina, el hipurato y el citrato. `comprobar la diferencia del nivel de estos 3 metabolitos entre el grupo control y el grupo cachexia, plantear un contraste de hipótesis`.
