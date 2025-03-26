@@ -2,16 +2,18 @@
 title: "Jimenez-Ferandez-Pedro-PEC1"
 author: "Pedro Jiménez Fernández"
 date: "2025-03-21"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 # Abstract
 
-Resumen de lo que es la cachexia, y breve descripción de lo que se hace en este estudio
+Resumen de lo que es la caquexia, y breve descripción de lo que se hace en este estudio
 
 # Objetivos
 
@@ -25,7 +27,7 @@ RStudio, RMarkdown y librerías empleadas, construcción de objeto de tipo summa
 
 ## Importación de los datos
 
-En primer lugar se descargan los datos.
+En primer lugar se descargan los datos. Una vez descargados los datos en el repositorio, se importan para su posterior análisis.
 
 ```{r}
 # descarga de los datos
@@ -34,11 +36,6 @@ if (!require("curl", quietly = TRUE)) {
 }
 library(curl)
 curl::curl_download(url = "https://raw.githubusercontent.com/nutrimetabolomics/metaboData/refs/heads/main/Datasets/2024-Cachexia/human_cachexia.csv", destfile = "human_cachexia.csv")
-```
-
-Una vez descargados los datos en el repositorio, se importan para su posterior análisis.
-
-```{r}
 # importación de los datos
 cachexia_data <- read.csv(file = "human_cachexia.csv")
 # a continuación se separan los datos de los metadatos
@@ -106,6 +103,8 @@ Tal y como se puede observar, la variable "cachexia_se" contiene 63 variables (m
 
 ## Análisis exploratorio de los datos y PCA (principal component analysis)
 
+### Análisis exploratorio de datos (EDA)
+
 A continuación se hace un análisis exploratorio de los datos contenidos en el objeto "cachexia_se".
 
 ```{r}
@@ -113,24 +112,96 @@ A continuación se hace un análisis exploratorio de los datos contenidos en el 
 table(colData(cachexia_se)$group)
 ```
 
-Se puede observar que en total hay 47 individuos con cachexia y 30 individuos pertenecientes al grupo control.
+Se puede observar que en total hay 47 individuos con caquexia y 30 individuos pertenecientes al grupo control.
 
 ```{r}
-# resumen estadístico básico de los metabolitos:
-## primero se construye un dataframe
-met_data <- assay(cachexia_se)
-stats <- data.frame(
-  metabolite = rownames(met_data),
-  mean = rowMeans(met_data),
-  sd = rowSds(met_data),
-  median = rowMedians(met_data),
-  min = rowMins(met_data),
-  max = rowMaxs(met_data)
+# se preparan los datos para el análisis exploratorio
+matrix <- assay(cachexia_se)
+group <- colData(cachexia_se)$group
+# se comprueba que no haya valores faltantes
+print(summary(colSums(is.na(matrix))))
+print(summary(rowSums(is.na(matrix))))
+```
+
+Aunque en el archivo "description.md" adjunto a los datos se especifica que no existen valores faltantes, se ha realizado una prueba para verificarlo. Tal y como se indica hay ausencia total de valores faltantes o "missing values". A continuación se muestran las estadísticas básicas.
+
+```{r}
+# estadísticas básicas
+print(summary(colSums(matrix)))
+print(summary(rowSums(matrix)))
+```
+
+```{r, echo=TRUE}
+# a continuación, se hace un filtrado de los metabolitos que no presentan
+# varianza
+variance <- rowSds(matrix)
+filtered_matrix <- matrix[variance > 0, ]
+nrow(filtered_matrix)
+```
+
+Los 63 metabolitos presentan varianza. A continuación se representa un histograma global para visualizar la distribución de los valores de los diferentes metabolitos.
+
+```{r}
+# se hacen las representaciones gráficas
+hist(
+  filtered_matrix,
+  breaks = 50,
+  main = "Distriubution of metabolite values",
+  xlab = "Metabolite value",
+  ylab = "Frequency",
+  col = "#ada"
+  )
+plot(
+  rowMeans(filtered_matrix),
+  main = "Distriubution of metabolite mean",
+  xlab = "Metabolite index",
+  ylab = "Mean",
+  col = "#494",
+  type = "h",
 )
-## se muestran las estadísticas descriptivas básicas ds los 10 metabolitos con
-## niveles medios más altos
-head(stats[order(-stats$mean), ], n = 10)
+abline(a = 2000, b = 0, col = "red")
+```
+
+Al observar la distribución global de todos los valores de la matriz, puede observarse que hay un gran número de valores muy cercanos a 0 y después una cola bastante larga que va hasta valores superiores a 30,000. Algunos metabolitos presentan valores muy elevados, lo cual indica la presencia de outliers, por otra parte, las diferencias en la magnitud de los valores de los metablitos indican que las varianzas no son similares, estos 2 factores contribuyen a que la capacidad de predicción del análisis de componentes principales se vea comprometida. Por otra parte, puede observarse que hay 3 metabolitos cuya media está significativamente por encima de la de los demás metabolitos.
+
+```{r}
+means <- data.frame(mean = rowMeans(filtered_matrix),
+                    metabolite = rownames(filtered_matrix))
+head(means[order(-means$mean),])
+```
+
+Se puede observar que los metabolitos con los valores medios más altos son la creatinina, el hipurato y el citrato.
+
+Para solucionar todos los problemas mencionados anteriormente se aplica una normalización logarítmica a los datos y se comprueban los resultados.
+
+```{r, echo=TRUE}
+# normalización logarítmica
+log_matrix <- log2(filtered_matrix + 1)
+```
+
+```{r}
+hist(
+  log_matrix,
+  breaks = 50,
+  main = "Distriubution of metabolite values",
+  xlab = "Metabolite value",
+  ylab = "Frequency",
+  col = "#ada"
+  )
+plot(
+  rowMeans(log_matrix),
+  main = "Distriubution of metabolite mean",
+  xlab = "Metabolite index",
+  ylab = "Mean",
+  col = "#494",
+  type = "h",
+)
+```
+
+### Análisis de componentes principales (PCA)
+
+```{r}
 
 ```
 
-Los 3 metabolitos con niveles medios más altos son son la creatinina, el hipurato y el citrato. `comprobar la diferencia del nivel de estos 3 metabolitos entre el grupo control y el grupo cachexia, plantear un contraste de hipótesis`.
+Los 3 metabolitos con niveles medios más altos son son la creatinina, el hipurato y el citrato. `comprobar la diferencia del nivel de estos 3 metabolitos entre el grupo control y el grupo con caquexia, plantear un contraste de hipótesis`.
