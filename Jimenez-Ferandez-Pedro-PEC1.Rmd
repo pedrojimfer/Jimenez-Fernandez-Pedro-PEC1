@@ -117,7 +117,6 @@ Se puede observar que en total hay 47 individuos con caquexia y 30 individuos pe
 ```{r}
 # se preparan los datos para el análisis exploratorio
 matrix <- assay(cachexia_se)
-group <- colData(cachexia_se)$group
 # se comprueba que no haya valores faltantes
 print(summary(colSums(is.na(matrix))))
 print(summary(rowSums(is.na(matrix))))
@@ -141,8 +140,9 @@ nrow(filtered_matrix)
 
 Los 63 metabolitos presentan varianza. A continuación se representa un histograma global para visualizar la distribución de los valores de los diferentes metabolitos.
 
-```{r}
+```{r, fig.height=7, fig.width=7}
 # se hacen las representaciones gráficas
+par(mfrow = c(2, 1))
 hist(
   filtered_matrix,
   breaks = 50,
@@ -165,12 +165,29 @@ abline(a = 2000, b = 0, col = "red")
 Al observar la distribución global de todos los valores de la matriz, puede observarse que hay un gran número de valores muy cercanos a 0 y después una cola bastante larga que va hasta valores superiores a 30,000. Algunos metabolitos presentan valores muy elevados, lo cual indica la presencia de outliers, por otra parte, las diferencias en la magnitud de los valores de los metablitos indican que las varianzas no son similares, estos 2 factores contribuyen a que la capacidad de predicción del análisis de componentes principales se vea comprometida. Por otra parte, puede observarse que hay 3 metabolitos cuya media está significativamente por encima de la de los demás metabolitos.
 
 ```{r}
-means <- data.frame(mean = rowMeans(filtered_matrix),
-                    metabolite = rownames(filtered_matrix))
+# metabolitos con valores medios más altos
+means <- data.frame(
+  mean = rowMeans(filtered_matrix),
+  metabolite = rownames(filtered_matrix)
+  )
 head(means[order(-means$mean),])
+# una vez identificados los 3 metabolitos con valores medios más
+# altos se representa un boxplot para comparar los niveles de cada
+# uno entre el grupo control y el grupo cachexia
+max_metabolites <- c("Creatinine", "Hippurate", "Citrate")
+max_group <- colData(cachexia_se)$group
+par(mfrow = c(1, 3))
+for (met in max_metabolites) {
+  max_values <- filtered_matrix[met, ]
+  boxplot(max_values ~ max_group,
+          main = met,
+          col = c("#daa", "#aad"),
+          ylab = "Level",
+          xlab = "Group")
+}
 ```
 
-Se puede observar que los metabolitos con los valores medios más altos son la creatinina, el hipurato y el citrato.
+Se puede observar que los metabolitos con los valores medios más altos son la creatinina, el hipurato y el citrato, y que además los niveles de estos 3 metabolitos son más elevados en el caso de los pacientes con caquexia. También puede observarse la presencia de outliers en el boxplot.
 
 Para solucionar todos los problemas mencionados anteriormente se aplica una normalización logarítmica a los datos y se comprueban los resultados.
 
@@ -179,29 +196,78 @@ Para solucionar todos los problemas mencionados anteriormente se aplica una norm
 log_matrix <- log2(filtered_matrix + 1)
 ```
 
-```{r}
+```{r, fig.height=7, fig.width=7}
+par(mfrow = c(2, 1))
 hist(
   log_matrix,
   breaks = 50,
   main = "Distriubution of metabolite values",
   xlab = "Metabolite value",
-  ylab = "Frequency",
+  ylab = "log2(Frequency)",
   col = "#ada"
   )
 plot(
   rowMeans(log_matrix),
   main = "Distriubution of metabolite mean",
   xlab = "Metabolite index",
-  ylab = "Mean",
+  ylab = "log2(Mean)",
   col = "#494",
   type = "h",
 )
 ```
 
+Tras aplicar una transformación logarítmica puede observarse que los valores no están acumulados cerca del 0, si no que se distribuyen de una forma más homogénea. Las magnitudes de los metabolitos se han igualado bastante, esto evitará que unos pocos metabolitos tengan dominancia en el PCA posterior.
+
 ### Análisis de componentes principales (PCA)
 
 ```{r}
+# se extrae la columna de grupos del objeto cachexia_se
+group <- colData(cachexia_se)$group
+# se hace el PCA transponiendo los datos para que las muestras se 
+# encuentren en las filas
+pca_res <- prcomp(t(log_matrix), center = TRUE, scale. = TRUE)
+# se calcula la varianza explicada
+var_exp <- round(100 * summary(pca_res)$importance[2, 1:2], 1)
+# se definen grupos y colores
+group <- factor(group)
+group_color <- ifelse(group == "cachexic", "#f88", "#88f")
+# plot de PCA
+plot(
+  pca_res$x[, 1],
+  pca_res$x[, 2],
+  col = group_color,
+  pch = 19,
+  xlab = paste0("PC1 (", var_exp[1], "%)"),
+  ylab = paste0("PC2 (", var_exp[2], "%)"),
+  main = "Metabolic profiles PCA"
+  )
+legend("topright", legend = levels(group), col = c("#f88", "#88f"), pch = 19)
 
 ```
 
-Los 3 metabolitos con niveles medios más altos son son la creatinina, el hipurato y el citrato. `comprobar la diferencia del nivel de estos 3 metabolitos entre el grupo control y el grupo con caquexia, plantear un contraste de hipótesis`.
+Tras hacer el PCA, se puede observar que hay 2 componentes principales, PC1 y PC2. PC1 explica un 58.5% de la variabilidad total, mientras que la segunda componente explica un 4.5% adicional. La PC1 explica más de un 50% de la variabilidad total, por lo que se deduce que puede existir un patrón que explica más de la mitad del perfil metabólico global. Adicionalmente, se puede observar que hay una separación parcial entre los 2 grupos y que la PC1 capta diferencias metabólicas asociadas al estado caquéxico. A continuación se comprobará que metabolitos contribuyen más a cada una de las componentes.
+
+```{r}
+# se obtienen los loadings para PC1 y PC2
+loadings <- pca_res$rotation[, 1:2]
+# se ordenan los metabolitos por contribución absoluta a PC1
+ord_pc1 <- order(abs(loadings[, 1]), decreasing = TRUE)
+top_pc1 <- loadings[ord_pc1[1:10], 1]
+# se ordenan los metabolitos por contribución absoluta a PC2
+ord_pc2 <- order(abs(loadings[, 2]), decreasing = TRUE)
+top_pc2 <- loadings[ord_pc2[1:10], 2]
+# finalmente, se muestran los metabolitos que más contribuyen a cada
+# componente
+cat("Metabolitos que más contribuyen a PC1:\n")
+print(round(top_pc1, 4))
+cat("\nMetabolitos que más contribuyen a PC2:\n")
+print(round(top_pc2, 4))
+```
+
+Según los resultados, la creatinina es el metabolito que más contribuye a la PC1, esto es consistente con las observaciones que se hicieron en el análisis exploratorio de los datos. Después de la creatinina, los metabolitos que más pacrecen contribuir a la PC1 son la valina, la alanina y la glutamina. Por otra parte los metabolitos que más contribuyen a la PC2 son el acetato, la sacarosa y el X2.oxoglutarato. La contribución de la creatinina a la PC1 es coherente, ya que este metabolito participa en el metabolismo muscular, por otra parte, el hecho de que sus niveles estén elevados puede indicar que hay procesos de degradación muscular, lo cual es característico de la caquexia.
+
+# Discusión
+
+# Conclusiones
+
+# Referencias
