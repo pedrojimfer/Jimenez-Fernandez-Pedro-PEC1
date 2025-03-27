@@ -3,25 +3,42 @@ title: "Jimenez-Ferandez-Pedro-PEC1"
 author: "Pedro Jiménez Fernández"
 date: "2025-03-21"
 output:
-  pdf_document: default
-  html_document: default
+  pdf_document:
+    toc: true
+    toc_depth: 3
+  html_document:
+    toc: true
+    toc_depth: 3
+toc-title: "Índice"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
+\newpage
+
 # Abstract
 
-Resumen de lo que es la caquexia, y breve descripción de lo que se hace en este estudio
+La caquexia es un síndrome metabólico que se caracteriza por la pérdida significativa de masa muscular que normalmente está asociado al cáncer u otras enfermedades crónicas. Este estudio analiza un conjunto de datos metabolómicos con el fin de poder identificar diferencias en los perfiles metabólicos entre pacientes que presentan caquexia y controles sanos. Mediante el empleo de R y RStudio se construyó un objeto de la clase "SummarizedExperiment" con 63 metabolitos medidos en 77 individuos. Se efectuó un análisis exploratorio de los datos (EDA), seguido de una transformación logarítmica con el fin de reducir la dominancia de metabolitos con la varinanza alta. Después se efectuó un análisis de componentes principales (PCA), cuyo resultado reveló que la primera componente (PC1) explicaba el 58,5% de la variabilidad total. La PC1 hacía una diferenciación parcial entre el grupo de pacientes y el grupo control, siendo la creatinina el principal metabolito contribuyente. Los resultados obtenidos sugieren un perfil metabólico característico en los individuos caquéxicos, que se alinean con los procesos de degradación muscular descritos en la literatura científica (Fearon et al., 2011).
 
 # Objetivos
 
-Creación del objeto de tipo summarizedExperiment a partir del conjunto de datos proporcionado, objetivos del análisis estadístico.
+Este estudio tiene como objetivo principal la comparación de los perfiles metabolómicos entre individuos sanos pertenecientes a un grupo control y pacientes con caquexia con el objetivo de identificar patrones metabólicos asociados a estos últimos. Los objetivos específicos son los siguientes:
+
+-   La correcta importación y procesado de los datos metabolómicos.
+
+-   La construcción de un objeto de tipo "SummarizedExperiment" para el posterior análisis de los datos.
+
+-   La realización de un análisis exploratorio de los datos con el fin de comprender las características de los mismos.
+
+-   La realización de un análisis de componentes principales para conseguir una reducción de la dimensionalidad y detectar algún patrón metabólico asociado con la caquexia.
 
 # Métodos
 
-RStudio, RMarkdown y librerías empleadas, construcción de objeto de tipo summarizedExperiment, métodos estadísticos empleados
+El estudio se ha llevado a cabo empleando el lenguaje de programación R, versión 4.4.3 dentro del IDE RStudio. Se ha utilizado RMarkdown para la creación de un informe dinámico que contenga el código empleado y permita reproducir los resultados. Para realizar el análisis se emplearon librerías presentes de base en la versión de R 4.4.3, así como librerías adicionales, entre las que se encuentran curl, BiocManager (BioConductor) y SummarizedExperiment, para la descarga de datos, instalación del paquete SummarizedExperiment y creación del objeto de contención de los datos respectivamente.
+
+Primero se descargaron los datos desde un repositorio de [GitHub](https://github.com/nutrimetabolomics/metaboData/tree/main/Datasets/2024-Cachexia) proporcionado por el profesor Alex Sánchez Pla. A continuación se creó el objeto de la clase SummarizedExperiment para contener la matriz de datos de los diferentes metabolitos en los diferentes pacientes junto a sus metadatos, como por ejemplo el grupo al que pertenecían. Posteriormente se realizó un análisis exploratorio inicial de los datos para comprobar las características de los mismos y buscar diferencias entre el grupo de control y los pacientes. Finalmente, se realizó un análisis de componentes principales con el objetivo de reducir la dimensionalidad de los datos y detectar la separación entre ambos grupos en base a sus perfiles metabólicos.
 
 # Resultados
 
@@ -271,3 +288,5 @@ Según los resultados, la creatinina es el metabolito que más contribuye a la P
 # Conclusiones
 
 # Referencias
+
+Fearon, K., Strasser, F., Anker, S. D., Bosaeus, I., Bruera, E., Fainsinger, R. L., ... & Baracos, V. E. (2011). Definition and classification of cancer cachexia: an international consensus. *The Lancet Oncology, 12*(5), 489–495. https://doi.org/10.1016/S1470-2045(10)70218-7
