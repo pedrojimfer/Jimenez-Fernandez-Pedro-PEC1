@@ -13,7 +13,7 @@ toc-title: "Índice"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, collapse = TRUE)
 ```
 
 \newpage
@@ -285,8 +285,30 @@ Según los resultados, la creatinina es el metabolito que más contribuye a la P
 
 # Discusión
 
+Según los resultados obtenidos, se pueden apreciar diferencias claras entre los perfiles metabolómicos de personas pertenecientes al grupo control y pacientes con caquexia. Los resultados del análisis exploratorio de datos revelan que existen metabolitos, como la creatinina, el citrato y el hipurato, con valores altamente elevados en personas que padecen caquexia. Esto sugiere que es posible que exista una asociación entre los procesos fisiopatológicos de la enfermedad con estos tres compuestos metabólicos.
+
+A pesar de los resultados obtenidos hay que tener en consideración las limitaciones del estudio realizado en este trabajo. Primero hay que tener en cuenta que se parte de un tamaño muestral relativamente pequeño, ya que tan solo se cuenta con los datos de 77 individuos, esto puede limitar la fiabilidad estadística del estudio así como la generalización de los resultados del mismo.
+
+Finalmente, es importante destacar que la caquexia es una enfermedad multifactorial que no se explica únicamente por alteraciones metabólicas, por lo que, aunque los resultados puedan parecer interensantes y de cierta utilidad, deben ser interpretados con la correspondiente precaución. En futuros estudios de la enfermedad, podria ser de gran utilidad integrar datos clínicos, proteómicos o genómicos así como el empleo de técnicas de aprendizaje automático para la construcción de modelos que puedan aportar información más precisa y clínicamente relevante sobre la caquexia.
+
 # Conclusiones
+
+En este estudio se han podido caracterizar diferencias metabólicas entre el grupo control y el grupo de pacientes con caquexia mediante el empleo de R. Gracias a la construcción de un objeto de tipo "SummarizedExperiment", los datos se han organizado de forma eficiente junto a los correspondientes metadatos, facilitando así el proceso de análisis. Tanto el análisis exploratorio de los datos como la transformación logarítmica empleada sobre los mismos, han sido claves para la correcta realización del análisis de componentes principales realizado al final del estudio.
+
+Los resultados del análisis de componentes principales revelan una clara contribución de metabolitos como la creatinina, valina y glutamina, relacionados con el metabolismo muscular, en la diferenciación entre individuos con caquexia e individuos del grupo control. Por lo tanto, los resultados sugieren la existencia de un patrón metabólico asociado a la caquexia, lo cual refuerza el papel potencial de la metabolómica como herramienta de monitoreo y diagnóstico clínico.
+
+\newpage
 
 # Referencias
 
-Fearon, K., Strasser, F., Anker, S. D., Bosaeus, I., Bruera, E., Fainsinger, R. L., ... & Baracos, V. E. (2011). Definition and classification of cancer cachexia: an international consensus. *The Lancet Oncology, 12*(5), 489–495. https://doi.org/10.1016/S1470-2045(10)70218-7
+-   **Repositorio del trabajo**:
+
+    <https://github.com/pedrojimfer/Jimenez-Fernandez-Pedro-PEC1.git>
+
+-   **Datos caquexia**:
+
+    <https://github.com/nutrimetabolomics/metaboData/tree/main/Datasets/2024-Cachexia>
+
+-   **Bibliografía**:
+
+    Fearon, K., Strasser, F., Anker, S. D., Bosaeus, I., Bruera, E., Fainsinger, R. L., ... & Baracos, V. E. (2011). Definition and classification of cancer cachexia: an international consensus. *The Lancet Oncology, 12*(5), 489–495. https://doi.org/10.1016/S1470-2045(10)70218-7
