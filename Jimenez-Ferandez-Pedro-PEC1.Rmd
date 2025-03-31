@@ -114,6 +114,14 @@ cachexia_se <- SummarizedExperiment(
 )
 # se visualiza el objeto SummarizedExperiment
 cachexia_se
+# se guarda el objeto SummarizedExperiment en formato binario
+save(cachexia_se, file = "cachexia_SumExp.Rda")
+# guardado de datos en formato texto
+write.table(assay(cachexia_se), file = "metabolite_data.txt",sep = "\t",
+            quote = FALSE, col.names = NA)
+# guardado de metadatos en formato texto
+write.table(meta, file = "metadata.md", quote = FALSE, sep = "\t",
+            row.names = FALSE)
 ```
 
 Tal y como se puede observar, la variable "cachexia_se" contiene 63 variables (metabolitos) y 77 observaciones (pacientes/individuos sanos) distribuídas en filas y columnas respectivamente.
